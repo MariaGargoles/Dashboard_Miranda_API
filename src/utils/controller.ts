@@ -1,13 +1,24 @@
 import { NextFunction, Request, Response } from "express";
-import { ServicesGeneric } from "./services"; 
-import { Identifiable } from "../interfaces/id";
+import { ServicesGeneric, PaginationOptions } from "./services"; 
+import { Document } from "mongoose";
+import logger from "./logger";
 
-export const ControllersGeneric = <T extends Identifiable>(Model: ServicesGeneric<T>) => {
-    const getAll = async (_req: Request, res: Response, next: NextFunction) => {
+export const ControllersGeneric = <T extends Document>(Model: ServicesGeneric<T>) => {
+    const getAll = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const data = await Model.getAll();
-            res.json({ data });
+            // Obtener parámetros de paginación de query string
+            const page = req.query.page ? parseInt(req.query.page as string) : undefined;
+            const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
+            const sort = req.query.sort as string | undefined;
+
+            const options: PaginationOptions | undefined = 
+                (page || limit) ? { page, limit, sort } : undefined;
+
+            const result = await Model.getAll(options);
+            
+            res.json(result);
         } catch (error) {
+            logger.error('Error in getAll controller:', error);
             next(error);
         }
     };
@@ -16,22 +27,27 @@ export const ControllersGeneric = <T extends Identifiable>(Model: ServicesGeneri
         try {
             const id = req.params.id;
             const data = await Model.getId(id);
+            
             if (data) {
                 res.json({ data });
             } else {
-                res.status(404).json({ message: "Not found" });
+                res.status(404).json({ error: "Resource not found" });
             }
         } catch (error) {
+            logger.error(`Error in getId controller for ID ${req.params.id}:`, error);
             next(error);
         }
     };
 
     const post = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const New = req.body;
-            const Create = await Model.add(New); 
-            res.status(201).json({ data: Create });
+            const newItem = req.body;
+            const created = await Model.add(newItem); 
+            
+            logger.info(`New resource created with ID: ${(created as any)._id}`);
+            res.status(201).json({ data: created });
         } catch (error) {
+            logger.error('Error in post controller:', error);
             next(error);
         }
     };
@@ -39,23 +55,34 @@ export const ControllersGeneric = <T extends Identifiable>(Model: ServicesGeneri
     const deleteID = async (req: Request, res: Response, next: NextFunction) => {
         try {
             const id = req.params.id;
-            const remove = await Model.deleteID(id);
-            res.json({ data: remove });
+            const deleted = await Model.deleteID(id);
+            
+            if (deleted) {
+                logger.info(`Resource deleted with ID: ${id}`);
+                res.json({ data: deleted, message: "Resource deleted successfully" });
+            } else {
+                res.status(404).json({ error: "Resource not found" });
+            }
         } catch (error) {
+            logger.error(`Error in deleteID controller for ID ${req.params.id}:`, error);
             next(error);
         }
     };
 
     const update = async (req: Request, res: Response, next: NextFunction) => {
         try {
-            const modify = req.body;
-            const update = await Model.update(modify); 
-            if (update) {
-                res.json({ data: update });
+            const id = req.params.id;
+            const updates = req.body;
+            const updated = await Model.update(id, updates); 
+            
+            if (updated) {
+                logger.info(`Resource updated with ID: ${id}`);
+                res.json({ data: updated });
             } else {
-                res.status(404).json({ message: "Not found" });
+                res.status(404).json({ error: "Resource not found" });
             }
         } catch (error) {
+            logger.error(`Error in update controller for ID ${req.params.id}:`, error);
             next(error);
         }
     };

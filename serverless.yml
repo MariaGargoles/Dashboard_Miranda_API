@@ -2,12 +2,12 @@ service: miranda-backend
 
 provider:
   name: aws
-  region: eu-west-3
+  region: ${env:AWS_REGION, 'eu-west-3'}
   runtime: nodejs20.x
   environment:
-    TOKEN_SECRET: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InNlZ3dhbmRhMTJAZ21haWwuY29tIiwiaWF0IjoxNzI3MzQ2NzY4fQ.P1QSO2vpmFf3F3EyF7W6Yzt1VJYNVkI2wmaFoB-Vd_4
-    MONGODB_URI: mongodb+srv://segwanda12:miranda@miranda.jwtaj.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
-    DOMAIN_FRONT: http://dashboard-miranda-mgl.s3-website.eu-west-3.amazonaws.com/
+    TOKEN_SECRET: ${env:TOKEN_SECRET}
+    MONGODB_URI: ${env:MONGODB_URI}
+    DOMAIN_FRONT: ${env:DOMAIN_FRONT}
 
 functions:
   app:
@@ -20,7 +20,7 @@ functions:
       - http:
           path: /{proxy+}
           method: ANY
-          cors: trueç
+          cors: true
 login:
   handler: dist/lambda.handler 
   events:

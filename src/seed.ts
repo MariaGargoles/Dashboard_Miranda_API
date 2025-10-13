@@ -92,29 +92,31 @@ for (let i = 0; i < NumRooms; i++) {
         CreatedUser.push(NewUser);
     }
 
-    //Personal user
-    async function seedUser() {
-      const myPassword = 'miranda';
-      const myHashedPassword = await bcrypt.hash(myPassword, 10);  
-      const personalUser = new UserModel({
-          name: 'Maria',
-          email: 'segwanda12@gmail.com',
-          photo: faker.image.url(),
-          description: faker.lorem.sentence(),
-          startDate: faker.date.past(),
-          status: "ACTIVE",
-          password: myHashedPassword,  
-          contact: faker.phone.number(),
-      });
-  
-      try {
-          await personalUser.save();  
-          console.log('Usuario creado exitosamente');
-      } catch (error) {
-          console.error('Error al crear el usuario:', error);
-      }
-  }
-  seedUser();
+    // Usuario administrador por defecto
+    async function seedAdminUser() {
+        const adminPassword = 'Admin123!';
+        const adminHashedPassword = await bcrypt.hash(adminPassword, 10);  
+        const adminUser = new UserModel({
+            name: 'Admin User',
+            email: 'admin@miranda.com',
+            photo: faker.image.url(),
+            description: 'System Administrator',
+            startDate: new Date(),
+            status: "ACTIVE",
+            password: adminHashedPassword,  
+            contact: faker.phone.number(),
+        });
+    
+        try {
+            await adminUser.save();  
+            console.log('Admin user created successfully');
+            console.log('Email: admin@miranda.com');
+            console.log('Password: Admin123!');
+        } catch (error) {
+            console.error('Error creating admin user:', error);
+        }
+    }
+    seedAdminUser();
   
     // Seeding Bookings
     const CreatedBooking: Booking[] = [];

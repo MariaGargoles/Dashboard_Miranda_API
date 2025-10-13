@@ -1,2 +1,14 @@
 .env
+.env.local
+.env.*.local
 node_modules/
+dist/
+logs/
+*.log
+coverage/
+.serverless/
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
